@@ -46,6 +46,7 @@ def addLink(name, url, iconimage):
 def show_message(header, message, timeout=3000):
     xbmc.executebuiltin('XBMC.Notification("%s", "%s", %s, "")'%(header, message, timeout))
 
+
 def get_params():
     param = {}
     paramstring = sys.argv[2]
@@ -81,7 +82,12 @@ def get_random_list():
     """ CherryMusic server generates random playlist, function returns deserialised data """
     request = urllib2.Request(urlparse.urljoin(host, "api/generaterandomplaylist"))
     request.add_header("Cookie", session_id)
-    response = urllib2.urlopen(request)
+    try:
+        response = urllib2.urlopen(request)
+    except urllib2.HTTPError as e:
+        if e.code == 401:
+            show_message("Authorization error", "Probobly something wrong with login, pass or host", 6000)
+            return None
     data = response.read()
     response.close()
     return simplejson.loads(data)
@@ -91,7 +97,12 @@ def get_playlists():
     """ CherryMusic server returns available playlists, function returns deserialised data """
     request = urllib2.Request(urlparse.urljoin(host, "api/showplaylists"))
     request.add_header("Cookie", session_id)
-    response = urllib2.urlopen(request)
+    try:
+        response = urllib2.urlopen(request)
+    except urllib2.HTTPError as e:
+        if e.code == 401:
+            show_message("Authorization error", "Probobly something wrong with login, pass or host", 6000)
+            return None
     data = response.read()
     response.close()
     return simplejson.loads(data)
@@ -113,7 +124,12 @@ def search(text):
     request = urllib2.Request(urlparse.urljoin(host, "api/search"))
     data = urllib.urlencode({"data": simplejson.dumps({"searchstring": text})})
     request.add_header("Cookie", session_id)
-    response = urllib2.urlopen(request, data=data)
+    try:
+        response = urllib2.urlopen(request, data=data)
+    except urllib2.HTTPError as e:
+        if e.code == 401:
+            show_message("Authorization error", "Probobly something wrong with login, pass or host", 6000)
+            return None
     data = response.read()
     response.close()
     return simplejson.loads(data)
@@ -124,7 +140,7 @@ def add_to_current_playlist(name, url):
     listitem = xbmcgui.ListItem('test')
     listitem.setInfo(type='music', infoLabels={'title': name})
     playlist.add(urllib.unquote(url), listitem)
-    show_message("CherryMusic", "This song were added to current playlist", 5000)
+    show_message("CherryMusic", "This song were added to current playlist", 6000)
 
 
 def CATEGORIES():
@@ -138,21 +154,23 @@ def RANDOM_LIST():
     """ Randomize playlist menu """
     playlist = xbmc.PlayList(xbmc.PLAYLIST_MUSIC)
     playlist.clear()
-    data = get_random_list()['data']
-    for item in data:
-        listitem = xbmcgui.ListItem('test')
-        listitem.setInfo(type='music', infoLabels={'title': item['label']})
-        url = urlparse.urljoin(host, "/serve/")
-        url = urlparse.urljoin(url, item['urlpath'])
-        playlist.add(url, listitem)
-    xbmc.Player().play(playlist)
+    data = get_random_list()
+    if data is not None:
+        for item in data['data']:
+            listitem = xbmcgui.ListItem('test')
+            listitem.setInfo(type='music', infoLabels={'title': item['label']})
+            url = urlparse.urljoin(host, "/serve/")
+            url = urlparse.urljoin(url, item['urlpath'])
+            playlist.add(url, listitem)
+        xbmc.Player().play(playlist)
 
 
 def SHOW_PLAYLISTS():
     """ Load Playlist menu """
-    data = get_playlists()['data']
-    for item in data:
-        addDir(item['title'], str(item['plid']),3,"")
+    data = get_playlists()
+    if data is not None:
+        for item in data['data']:
+            addDir(item['title'], str(item['plid']),3,"")
 
 
 def SEARCH():
@@ -161,11 +179,12 @@ def SEARCH():
     keyboard.doModal()
     if (keyboard.isConfirmed() and keyboard.getText() != ''):
         text = keyboard.getText()
-        data = search(text)['data']
-        for item in data:
-            url = urlparse.urljoin(host, "/serve/")
-            url = urlparse.urljoin(url, item.get('urlpath'))
-            addDir(item.get("label"), url, 1, "")
+        data = search(text)
+        if data is not None:
+            for item in data['data']:
+                url = urlparse.urljoin(host, "/serve/")
+                url = urlparse.urljoin(url, item.get('urlpath'))
+                addDir(item.get("label"), url, 1, "")
 
 
 def LOAD_PLAYLIST(url):
@@ -189,7 +208,10 @@ url = params.get("url", None)
 name = params.get("name", "")
 
 if session_id is None:
-    login(host, username, password)
+    if not host or not username or not password:
+        show_message("Configure first", "You have to set user, password and host first", 10000)
+    else:
+        login(host, username, password)
 
 
 if not mode:
