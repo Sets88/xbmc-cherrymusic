@@ -1,3 +1,6 @@
+#!/usr/bin/python
+# -*- coding: utf-8 -*-
+
 import xbmc, xbmcgui, xbmcplugin
 import xbmcaddon
 import sys
@@ -16,6 +19,8 @@ PLUGIN = 'plugin.audio.cherrymusic'
 settings = xbmcaddon.Addon(id=PLUGIN)
 language = settings.getLocalizedString
 enabledebug = settings.getSetting('enabledebug') == "true"
+translated = settings.getLocalizedString
+
 
 host = settings.getSetting('cherrymusichost')
 username =  settings.getSetting('cherrymusicuser')
@@ -29,7 +34,7 @@ session_id = None
 
 
 def addDir(name, url, mode, iconimage):
-    u = sys.argv[0] + "?url=" + urllib.quote_plus(url) + "&mode=" + str(mode) + "&name=" + urllib.quote_plus(name)
+    u = sys.argv[0] + "?url=" + urllib.quote_plus(url) + "&mode=" + str(mode) + "&name=" + urllib.quote_plus(name.encode("utf-8"))
     liz = xbmcgui.ListItem(unicode(name), iconImage="DefaultFolder.png", thumbnailImage=iconimage)
     liz.setInfo(type="Video", infoLabels={ "Title": name })
     ok = xbmcplugin.addDirectoryItem(handle=int(sys.argv[1]), url=u, listitem=liz, isFolder=True)
@@ -44,7 +49,7 @@ def addLink(name, url, iconimage):
 
 
 def show_message(header, message, timeout=3000):
-    xbmc.executebuiltin('XBMC.Notification("%s", "%s", %s, "")'%(header, message, timeout))
+    xbmc.executebuiltin('XBMC.Notification("%s", "%s", %s, "")' % (header.encode("utf-8"), message.encode("utf-8"), timeout))
 
 
 def get_params():
@@ -86,7 +91,7 @@ def get_random_list():
         response = urllib2.urlopen(request)
     except urllib2.HTTPError as e:
         if e.code == 401:
-            show_message("Authorization error", "Probobly something wrong with login, pass or host", 6000)
+            show_message(translated(30013), translated(30014), 6000)
             return None
     data = response.read()
     response.close()
@@ -101,7 +106,7 @@ def get_playlists():
         response = urllib2.urlopen(request)
     except urllib2.HTTPError as e:
         if e.code == 401:
-            show_message("Authorization error", "Probobly something wrong with login, pass or host", 6000)
+            show_message(translated(30013), translated(30014), 6000)
             return None
     data = response.read()
     response.close()
@@ -128,7 +133,7 @@ def search(text):
         response = urllib2.urlopen(request, data=data)
     except urllib2.HTTPError as e:
         if e.code == 401:
-            show_message("Authorization error", "Probobly something wrong with login, pass or host", 6000)
+            show_message(translated(30013), translated(30014), 6000)
             return None
     data = response.read()
     response.close()
@@ -140,14 +145,14 @@ def add_to_current_playlist(name, url):
     listitem = xbmcgui.ListItem('test')
     listitem.setInfo(type='music', infoLabels={'title': name})
     playlist.add(urllib.unquote(url), listitem)
-    show_message("CherryMusic", "This song were added to current playlist", 6000)
+    show_message("CherryMusic", translated(30015), 6000)
 
 
 def CATEGORIES():
     """ Main Menu """
-    addDir("Search by Title","",1,"")
-    addDir("Randomize playlist","",2,"")
-    addDir("Load Playlist","",3,"")
+    addDir(translated(30010),"",1,"")
+    addDir(translated(30011),"",2,"")
+    addDir(translated(30012),"",3,"")
 
 
 def RANDOM_LIST():
@@ -175,7 +180,7 @@ def SHOW_PLAYLISTS():
 
 def SEARCH():
     """ Load Playlist menu """
-    keyboard = xbmc.Keyboard('', "Enter search string", False)
+    keyboard = xbmc.Keyboard('', translated(30016), False)
     keyboard.doModal()
     if (keyboard.isConfirmed() and keyboard.getText() != ''):
         text = keyboard.getText()
@@ -209,7 +214,7 @@ name = params.get("name", "")
 
 if session_id is None:
     if not host or not username or not password:
-        show_message("Configure first", "You have to set user, password and host first", 10000)
+        show_message(translated(30017), translated(30018), 10000)
     else:
         login(host, username, password)
 
