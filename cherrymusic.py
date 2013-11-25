@@ -16,15 +16,16 @@ PLUGIN = 'plugin.audio.cherrymusic'
 settings = xbmcaddon.Addon(id=PLUGIN)
 language = settings.getLocalizedString
 enabledebug = settings.getSetting('enabledebug') == "true"
+
 host = settings.getSetting('cherrymusichost')
 username =  settings.getSetting('cherrymusicuser')
 password = settings.getSetting('cherrymusicpass')
 session_id = None
 
-def debug(msg):
-    f = open("/home/sets/.xbmc/temp/log.log", "w")
-    f.write(msg)
-    f.close()
+#def debug(msg):
+#    f = open("/home/sets/.xbmc/temp/log.log", "w")
+#    f.write(msg)
+#    f.close()
 
 
 def addDir(name, url, mode, iconimage):
@@ -60,8 +61,6 @@ def get_params():
             splitparams = pairsofparams[i].split('=')
             if (len(splitparams)) == 2:
                 param[splitparams[0]] = splitparams[1]
-
-#    showMessage("test", str(param))
     return param
 
 
@@ -106,7 +105,6 @@ def get_playlist(id):
     response = urllib2.urlopen(request, data=data)
     data = response.read()
     response.close()
-    debug(data)
     return simplejson.loads(data)
 
 
@@ -118,7 +116,6 @@ def search(text):
     response = urllib2.urlopen(request, data=data)
     data = response.read()
     response.close()
-    debug(data)
     return simplejson.loads(data)
 
 
@@ -193,8 +190,6 @@ name = params.get("name", "")
 
 if session_id is None:
     login(host, username, password)
-
-#showMessage("test", url)
 
 
 if not mode:
