@@ -204,7 +204,6 @@ elif mode == '2':
     RANDOM_LIST()
     pass
 elif mode == '3' and url is None:
-    show_message("test", url)
     SHOW_PLAYLISTS()
     xbmcplugin.endOfDirectory(int(sys.argv[1]))
 elif mode == '3' and url:
