@@ -77,7 +77,7 @@ def login(host, username, password):
     data = urllib.urlencode({"username": username, "password": password, "login": "login"})
     try:
         res = urllib2.urlopen(req, data=data)
-    except:
+    except urllib2.HTTPError as e:
         pass
     session_id = res.headers.getheader("Set-Cookie").split(";")[0]
     res.close()
@@ -153,6 +153,7 @@ def CATEGORIES():
     addDir(translated(30010),"",1,"")
     addDir(translated(30011),"",2,"")
     addDir(translated(30012),"",3,"")
+    return True
 
 
 def RANDOM_LIST():
@@ -176,13 +177,14 @@ def SHOW_PLAYLISTS():
     if data is not None:
         for item in data['data']:
             addDir(item['title'], str(item['plid']),3,"")
+        return True
 
 
 def SEARCH():
     """ Load Playlist menu """
     keyboard = xbmc.Keyboard('', translated(30016), False)
     keyboard.doModal()
-    if (keyboard.isConfirmed() and keyboard.getText() != ''):
+    if keyboard.isConfirmed() and keyboard.getText() != '':
         text = keyboard.getText()
         data = search(text)
         if data is not None:
@@ -190,6 +192,7 @@ def SEARCH():
                 url = urlparse.urljoin(host, "/serve/")
                 url = urlparse.urljoin(url, item.get('urlpath'))
                 addDir(item.get("label"), url, 1, "")
+            return True
 
 
 def LOAD_PLAYLIST(url):
@@ -220,19 +223,17 @@ if session_id is None:
 
 
 if not mode:
-    CATEGORIES()
-    xbmcplugin.endOfDirectory(int(sys.argv[1]))
+    if CATEGORIES():
+        xbmcplugin.endOfDirectory(int(sys.argv[1]))
 elif mode == '1' and url is None:
-    SEARCH()
-    xbmcplugin.endOfDirectory(int(sys.argv[1]))
+    if SEARCH():
+        xbmcplugin.endOfDirectory(int(sys.argv[1]))
 elif mode == '1' and url:
     add_to_current_playlist(name, url)
 elif mode == '2':
     RANDOM_LIST()
-    pass
 elif mode == '3' and url is None:
-    SHOW_PLAYLISTS()
-    xbmcplugin.endOfDirectory(int(sys.argv[1]))
+    if SHOW_PLAYLISTS():
+        xbmcplugin.endOfDirectory(int(sys.argv[1]))
 elif mode == '3' and url:
     LOAD_PLAYLIST(url)
-    pass
