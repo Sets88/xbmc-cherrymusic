@@ -31,6 +31,29 @@ session_id = None
 #    f = open("/home/sets/.xbmc/temp/log.log", "w")
 #    f.write(msg)
 #    f.close()
+class UI(object):
+    def __init__():
+        pass
+
+    def add_item(name, url, mode=False, iconimage=""):
+        is_folder = None
+        new_url = [sys.argv[0] + '?url=%s' % urllib.quote_plus(url)]
+        new_url.append('name' % urllib.quote_plus(name.encode("utf-8")))
+        if mode:
+            is_folder = True
+            new_url.append('mode=%s' % str(mode))
+        else:
+            is_folder = False
+        list_item = xbmcgui.ListItem(unicode(name), iconImage=iconimage, thumbnailImage=iconimage)
+        list_item.setInfo(type="Audio", infoLabels={ "Title": name })
+        ok = xbmcplugin.addDirectoryItem(handle=int(sys.argv[1]), url="&".join(new_url), listitem=list_item, isFolder=is_folder)
+        return ok
+
+    def end_of_directory():
+        xbmcplugin.endOfDirectory(int(sys.argv[1]))
+
+    def show_message(header, mesage, iconimage=""):
+        xbmc.executebuiltin('XBMC.Notification("%s", "%s", %s, "")' % (header.encode("utf-8"), message.encode("utf-8"), timeout))
 
 
 def addDir(name, url, mode, iconimage):
