@@ -78,6 +78,7 @@ class UI(object):
         return param
 
     def add_to_current_playlist(self, name, url):
+        """ Adds specified file to current playlist """
         playlist = xbmc.PlayList(xbmc.PLAYLIST_MUSIC)
         listitem = xbmcgui.ListItem('test')
         listitem.setInfo(type='music', infoLabels={'title': name})
@@ -98,6 +99,7 @@ class UI(object):
             xbmc.Player().play(playlist)
 
     def get_data_from_keyboard(self):
+        """ Shows keyboard and returns data from it """
         keyboard = xbmc.Keyboard('', translated(30016), False)
         keyboard.doModal()
         if keyboard.isConfirmed() and keyboard.getText() != '':
@@ -112,7 +114,6 @@ class UI(object):
 
     def show_playlists_menu(self, data):
         """ Load Playlist menu """
-#        data = get_playlists()
         if data is not None:
             for item in data['data']:
                 self.add_item(item['title'], str(item['plid']),3)
@@ -131,7 +132,6 @@ class UI(object):
         """ Load selected playlist """
         playlist = xbmc.PlayList(xbmc.PLAYLIST_MUSIC)
         playlist.clear()
-#        data = get_playlist(url)['data']
         for item in data:
             listitem = xbmcgui.ListItem('test')
             listitem.setInfo(type='music', infoLabels={'title': item.get("label")})
