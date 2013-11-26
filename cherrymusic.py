@@ -32,10 +32,10 @@ session_id = None
 #    f.write(msg)
 #    f.close()
 class UI(object):
-    def __init__():
+    def __init__(self):
         pass
 
-    def add_item(name, url, mode=False, iconimage=""):
+    def add_item(self, name, url, mode=False, iconimage=""):
         is_folder = None
         new_url = [sys.argv[0] + '?url=%s' % urllib.quote_plus(url)]
         new_url.append('name' % urllib.quote_plus(name.encode("utf-8")))
@@ -49,48 +49,34 @@ class UI(object):
         ok = xbmcplugin.addDirectoryItem(handle=int(sys.argv[1]), url="&".join(new_url), listitem=list_item, isFolder=is_folder)
         return ok
 
-    def end_of_directory():
+    def end_of_directory(self):
         xbmcplugin.endOfDirectory(int(sys.argv[1]))
 
-    def show_message(header, mesage, iconimage=""):
+    def show_message(self, header, mesage, iconimage=""):
         xbmc.executebuiltin('XBMC.Notification("%s", "%s", %s, "")' % (header.encode("utf-8"), message.encode("utf-8"), timeout))
 
-
-def addDir(name, url, mode, iconimage):
-    u = sys.argv[0] + "?url=" + urllib.quote_plus(url) + "&mode=" + str(mode) + "&name=" + urllib.quote_plus(name.encode("utf-8"))
-    liz = xbmcgui.ListItem(unicode(name), iconImage="DefaultFolder.png", thumbnailImage=iconimage)
-    liz.setInfo(type="Video", infoLabels={ "Title": name })
-    ok = xbmcplugin.addDirectoryItem(handle=int(sys.argv[1]), url=u, listitem=liz, isFolder=True)
-    return ok
-
-
-def addLink(name, url, iconimage):
-    liz = xbmcgui.ListItem(unicode(name), iconImage="DefaultFolder.png", thumbnailImage=iconimage)
-    liz.setInfo(type="Video", infoLabels={ "Title": name })
-    ok = xbmcplugin.addDirectoryItem(handle=int(sys.argv[1]), url=url, listitem=liz)
-    return ok
-
-
-def show_message(header, message, timeout=3000):
-    xbmc.executebuiltin('XBMC.Notification("%s", "%s", %s, "")' % (header.encode("utf-8"), message.encode("utf-8"), timeout))
-
-
-def get_params():
-    param = {}
-    paramstring = sys.argv[2]
-    if len(paramstring) >= 2:
-        params = sys.argv[2]
-        cleanedparams = params.replace('?', '')
-        if params[len(params)-1] == '/':
-            params = params[0:len(params) - 2]
-        pairsofparams = cleanedparams.split('&')
+    def get_params(self):
         param = {}
-        for i in range(len(pairsofparams)):
-            splitparams = {}
-            splitparams = pairsofparams[i].split('=')
-            if (len(splitparams)) == 2:
-                param[splitparams[0]] = splitparams[1]
-    return param
+        paramstring = sys.argv[2]
+        if len(paramstring) >= 2:
+            params = sys.argv[2]
+            cleanedparams = params.replace('?', '')
+            if params[len(params)-1] == '/':
+                params = params[0:len(params) - 2]
+            pairsofparams = cleanedparams.split('&')
+            param = {}
+            for i in range(len(pairsofparams)):
+                splitparams = {}
+                splitparams = pairsofparams[i].split('=')
+                if (len(splitparams)) == 2:
+                    param[splitparams[0]] = splitparams[1]
+        return param
+
+
+class Main(object):
+    def __init__(self):
+        pass
+    def 
 
 
 def login(host, username, password):
@@ -173,9 +159,9 @@ def add_to_current_playlist(name, url):
 
 def CATEGORIES():
     """ Main Menu """
-    addDir(translated(30010),"",1,"")
-    addDir(translated(30011),"",2,"")
-    addDir(translated(30012),"",3,"")
+    UI().add_item(translated(30010),"",1)
+    UI().add_item(translated(30011),"",2)
+    UI().add_item(translated(30012),"",3)
     return True
 
 
@@ -199,7 +185,7 @@ def SHOW_PLAYLISTS():
     data = get_playlists()
     if data is not None:
         for item in data['data']:
-            addDir(item['title'], str(item['plid']),3,"")
+            UI().add_item(item['title'], str(item['plid']),3)
         return True
 
 
@@ -214,7 +200,7 @@ def SEARCH():
             for item in data['data']:
                 url = urlparse.urljoin(host, "/serve/")
                 url = urlparse.urljoin(url, item.get('urlpath'))
-                addDir(item.get("label"), url, 1, "")
+                UI.add_item(item.get("label"), url, 1)
             return True
 
 
@@ -232,7 +218,7 @@ def LOAD_PLAYLIST(url):
     xbmc.Player().play(playlist)
 
 
-params = get_params()
+params = UI().get_params()
 
 mode = params.get("mode", None)
 url = params.get("url", None)
@@ -247,16 +233,16 @@ if session_id is None:
 
 if not mode:
     if CATEGORIES():
-        xbmcplugin.endOfDirectory(int(sys.argv[1]))
+        UI().end_of_directory()
 elif mode == '1' and url is None:
     if SEARCH():
-        xbmcplugin.endOfDirectory(int(sys.argv[1]))
+        UI().end_of_directory()
 elif mode == '1' and url:
     add_to_current_playlist(name, url)
 elif mode == '2':
     RANDOM_LIST()
 elif mode == '3' and url is None:
     if SHOW_PLAYLISTS():
-        xbmcplugin.endOfDirectory(int(sys.argv[1]))
+        UI().end_of_directory()
 elif mode == '3' and url:
     LOAD_PLAYLIST(url)
