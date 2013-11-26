@@ -1,5 +1,6 @@
 #! /bin/sh
 
+CURRDIR=`pwd`
 rm plugin.audio.cherrymusic.zip
 cd ..
-zip -r --exclude="*.git*" --exclude="*create_plugin_archive.sh*" plugin.audio.cherrymusic/plugin.audio.cherrymusic.zip plugin.audio.cherrymusic
+zip -r --exclude="*.git*" --exclude="*create_plugin_archive.sh*" $CURRDIR/plugin.audio.cherrymusic.zip $CURRDIR
