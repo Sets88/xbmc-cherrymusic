@@ -35,10 +35,15 @@ class UI(object):
     def __init__(self):
         pass
 
+    def __new__(cls):
+        if not hasattr(cls, 'instance'):
+             cls.instance = super(UI, cls).__new__(cls)
+        return cls.instance
+
     def add_item(self, name, url, mode=False, iconimage=""):
         is_folder = None
         new_url = [sys.argv[0] + '?url=%s' % urllib.quote_plus(url)]
-        new_url.append('name' % urllib.quote_plus(name.encode("utf-8")))
+        new_url.append('name=%s' % urllib.quote_plus(name.encode("utf-8")))
         if mode:
             is_folder = True
             new_url.append('mode=%s' % str(mode))
@@ -52,7 +57,7 @@ class UI(object):
     def end_of_directory(self):
         xbmcplugin.endOfDirectory(int(sys.argv[1]))
 
-    def show_message(self, header, mesage, iconimage=""):
+    def show_message(self, header, message, timeout=3000):
         xbmc.executebuiltin('XBMC.Notification("%s", "%s", %s, "")' % (header.encode("utf-8"), message.encode("utf-8"), timeout))
 
     def get_params(self):
@@ -72,177 +77,170 @@ class UI(object):
                     param[splitparams[0]] = splitparams[1]
         return param
 
+    def add_to_current_playlist(self, name, url):
+        playlist = xbmc.PlayList(xbmc.PLAYLIST_MUSIC)
+        listitem = xbmcgui.ListItem('test')
+        listitem.setInfo(type='music', infoLabels={'title': name})
+        playlist.add(urllib.unquote(url), listitem)
+        self.show_message("CherryMusic", translated(30015), 6000)
 
-class Main(object):
-    def __init__(self):
-        pass
-    def 
+    def create_playlist(self, data):
+        """ Creates playlist out of data """
+        playlist = xbmc.PlayList(xbmc.PLAYLIST_MUSIC)
+        playlist.clear()
+        if data is not None:
+            for item in data['data']:
+                listitem = xbmcgui.ListItem('test')
+                listitem.setInfo(type='music', infoLabels={'title': item['label']})
+                url = urlparse.urljoin(host, "/serve/")
+                url = urlparse.urljoin(url, item['urlpath'])
+                playlist.add(url, listitem)
+            xbmc.Player().play(playlist)
 
+    def get_data_from_keyboard(self):
+        keyboard = xbmc.Keyboard('', translated(30016), False)
+        keyboard.doModal()
+        if keyboard.isConfirmed() and keyboard.getText() != '':
+            return keyboard.getText()
 
-def login(host, username, password):
-    """ Login to CherryMusic using POST method """
-    global session_id
-    req = urllib2.Request(host)
-    data = urllib.urlencode({"username": username, "password": password, "login": "login"})
-    try:
-        res = urllib2.urlopen(req, data=data)
-    except urllib2.HTTPError as e:
-        pass
-    session_id = res.headers.getheader("Set-Cookie").split(";")[0]
-    res.close()
+    def categories_menu(self):
+        """ Main Menu """
+        self.add_item(translated(30010),"",1)
+        self.add_item(translated(30011),"",2)
+        self.add_item(translated(30012),"",3)
+        self.end_of_directory()
 
+    def show_playlists_menu(self, data):
+        """ Load Playlist menu """
+#        data = get_playlists()
+        if data is not None:
+            for item in data['data']:
+                self.add_item(item['title'], str(item['plid']),3)
+            self.end_of_directory()
 
-def get_random_list():
-    """ CherryMusic server generates random playlist, function returns deserialised data """
-    request = urllib2.Request(urlparse.urljoin(host, "api/generaterandomplaylist"))
-    request.add_header("Cookie", session_id)
-    try:
-        response = urllib2.urlopen(request)
-    except urllib2.HTTPError as e:
-        if e.code == 401:
-            show_message(translated(30013), translated(30014), 6000)
-            return None
-    data = response.read()
-    response.close()
-    return simplejson.loads(data)
+    def search_menu(self, data):
+        """ Load Playlist menu """
+        if data is not None:
+            for item in data['data']:
+                url = urlparse.urljoin(host, "/serve/")
+                url = urlparse.urljoin(url, item.get('urlpath'))
+                self.add_item(item.get("label"), url, 1)
+            self.end_of_directory()
 
-
-def get_playlists():
-    """ CherryMusic server returns available playlists, function returns deserialised data """
-    request = urllib2.Request(urlparse.urljoin(host, "api/showplaylists"))
-    request.add_header("Cookie", session_id)
-    try:
-        response = urllib2.urlopen(request)
-    except urllib2.HTTPError as e:
-        if e.code == 401:
-            show_message(translated(30013), translated(30014), 6000)
-            return None
-    data = response.read()
-    response.close()
-    return simplejson.loads(data)
-
-
-def get_playlist(id):
-    """ CherryMusic server returns playlists by id, function returns deserialised data """
-    request = urllib2.Request(urlparse.urljoin(host, "api/loadplaylist"))
-    data = urllib.urlencode({"data": simplejson.dumps({"playlistid": id})})
-    request.add_header("Cookie", session_id)
-    response = urllib2.urlopen(request, data=data)
-    data = response.read()
-    response.close()
-    return simplejson.loads(data)
-
-
-def search(text):
-    """ CherryMusic server returns found tracks by sting, function returns deserialised data """
-    request = urllib2.Request(urlparse.urljoin(host, "api/search"))
-    data = urllib.urlencode({"data": simplejson.dumps({"searchstring": text})})
-    request.add_header("Cookie", session_id)
-    try:
-        response = urllib2.urlopen(request, data=data)
-    except urllib2.HTTPError as e:
-        if e.code == 401:
-            show_message(translated(30013), translated(30014), 6000)
-            return None
-    data = response.read()
-    response.close()
-    return simplejson.loads(data)
-
-
-def add_to_current_playlist(name, url):
-    playlist = xbmc.PlayList(xbmc.PLAYLIST_MUSIC)
-    listitem = xbmcgui.ListItem('test')
-    listitem.setInfo(type='music', infoLabels={'title': name})
-    playlist.add(urllib.unquote(url), listitem)
-    show_message("CherryMusic", translated(30015), 6000)
-
-
-def CATEGORIES():
-    """ Main Menu """
-    UI().add_item(translated(30010),"",1)
-    UI().add_item(translated(30011),"",2)
-    UI().add_item(translated(30012),"",3)
-    return True
-
-
-def RANDOM_LIST():
-    """ Randomize playlist menu """
-    playlist = xbmc.PlayList(xbmc.PLAYLIST_MUSIC)
-    playlist.clear()
-    data = get_random_list()
-    if data is not None:
-        for item in data['data']:
+    def load_playlist_menu(url, data):
+        """ Load selected playlist """
+        playlist = xbmc.PlayList(xbmc.PLAYLIST_MUSIC)
+        playlist.clear()
+#        data = get_playlist(url)['data']
+        for item in data:
             listitem = xbmcgui.ListItem('test')
-            listitem.setInfo(type='music', infoLabels={'title': item['label']})
+            listitem.setInfo(type='music', infoLabels={'title': item.get("label")})
             url = urlparse.urljoin(host, "/serve/")
             url = urlparse.urljoin(url, item['urlpath'])
             playlist.add(url, listitem)
         xbmc.Player().play(playlist)
 
 
-def SHOW_PLAYLISTS():
-    """ Load Playlist menu """
-    data = get_playlists()
-    if data is not None:
-        for item in data['data']:
-            UI().add_item(item['title'], str(item['plid']),3)
-        return True
+class Main(object):
 
+    def __init__(self):
+        self.session_id = None
+        self.host = host
+        self.username = username
+        self.password = password
 
-def SEARCH():
-    """ Load Playlist menu """
-    keyboard = xbmc.Keyboard('', translated(30016), False)
-    keyboard.doModal()
-    if keyboard.isConfirmed() and keyboard.getText() != '':
-        text = keyboard.getText()
-        data = search(text)
-        if data is not None:
-            for item in data['data']:
-                url = urlparse.urljoin(host, "/serve/")
-                url = urlparse.urljoin(url, item.get('urlpath'))
-                UI.add_item(item.get("label"), url, 1)
-            return True
+        self.login(self.host, self.username, self.password)
 
+    def main(self):
 
-def LOAD_PLAYLIST(url):
-    """ Load selected playlist """
-    playlist = xbmc.PlayList(xbmc.PLAYLIST_MUSIC)
-    playlist.clear()
-    data = get_playlist(url)['data']
-    for item in data:
-        listitem = xbmcgui.ListItem('test')
-        listitem.setInfo(type='music', infoLabels={'title': item.get("label")})
-        url = urlparse.urljoin(host, "/serve/")
-        url = urlparse.urljoin(url, item['urlpath'])
-        playlist.add(url, listitem)
-    xbmc.Player().play(playlist)
+        params = UI().get_params()
 
+        mode = params.get("mode", None)
+        url = params.get("url", None)
+        name = params.get("name", "")
 
-params = UI().get_params()
+        if self.session_id is None:
+            UI().show_message(translated(30017), translated(30018), 10000)
+            return None
 
-mode = params.get("mode", None)
-url = params.get("url", None)
-name = params.get("name", "")
+        if not mode:
+            UI().categories_menu()
+        elif mode == '1' and url is None:
+            data = UI().get_data_from_keyboard()
+            if data:
+                UI().search_menu(self.search(data))
+        elif mode == '1' and url:
+           UI().add_to_current_playlist(name, url)
+        elif mode == '2':
+            UI().create_playlist(self.get_random_list())
+        elif mode == '3' and url is None:
+            UI().show_playlists_menu(self.get_playlists())
+        elif mode == '3' and url:
+            UI().create_playlist(self.get_playlist(url))
 
-if session_id is None:
-    if not host or not username or not password:
-        show_message(translated(30017), translated(30018), 10000)
-    else:
-        login(host, username, password)
+    def login(self, host, username, password):
+        """ Login to CherryMusic using POST method """
+        request = urllib2.Request(host)
+        data = urllib.urlencode({"username": username, "password": password, "login": "login"})
+        try:
+            response = urllib2.urlopen(request, data=data)
+        except urllib2.HTTPError as e:
+            pass
+        else:
+            self.session_id = response.headers.getheader("Set-Cookie").split(";")[0]
+        response.close()
 
+    def get_random_list(self):
+        """ CherryMusic server generates random playlist, function returns deserialised data """
+        request = urllib2.Request(urlparse.urljoin(host, "api/generaterandomplaylist"))
+        request.add_header("Cookie", self.session_id)
+        try:
+            response = urllib2.urlopen(request)
+        except urllib2.HTTPError as e:
+            if e.code == 401:
+                UI().show_message(translated(30013), translated(30014), 6000)
+                return None
+        data = response.read()
+        response.close()
+        return simplejson.loads(data)
 
-if not mode:
-    if CATEGORIES():
-        UI().end_of_directory()
-elif mode == '1' and url is None:
-    if SEARCH():
-        UI().end_of_directory()
-elif mode == '1' and url:
-    add_to_current_playlist(name, url)
-elif mode == '2':
-    RANDOM_LIST()
-elif mode == '3' and url is None:
-    if SHOW_PLAYLISTS():
-        UI().end_of_directory()
-elif mode == '3' and url:
-    LOAD_PLAYLIST(url)
+    def get_playlists(self):
+        """ CherryMusic server returns available playlists, function returns deserialised data """
+        request = urllib2.Request(urlparse.urljoin(host, "api/showplaylists"))
+        request.add_header("Cookie", self.session_id)
+        try:
+            response = urllib2.urlopen(request)
+        except urllib2.HTTPError as e:
+            if e.code == 401:
+                UI().show_message(translated(30013), translated(30014), 6000)
+                return None
+        data = response.read()
+        response.close()
+        return simplejson.loads(data)
+
+    def get_playlist(self, id):
+        """ CherryMusic server returns playlists by id, function returns deserialised data """
+        request = urllib2.Request(urlparse.urljoin(host, "api/loadplaylist"))
+        data = urllib.urlencode({"data": simplejson.dumps({"playlistid": id})})
+        request.add_header("Cookie", self.session_id)
+        response = urllib2.urlopen(request, data=data)
+        data = response.read()
+        response.close()
+        return simplejson.loads(data)
+
+    def search(self, text):
+        """ CherryMusic server returns found tracks by sting, function returns deserialised data """
+        request = urllib2.Request(urlparse.urljoin(host, "api/search"))
+        data = urllib.urlencode({"data": simplejson.dumps({"searchstring": text})})
+        request.add_header("Cookie", self.session_id)
+        try:
+            response = urllib2.urlopen(request, data=data)
+        except urllib2.HTTPError as e:
+            if e.code == 401:
+                UI().show_message(translated(30013), translated(30014), 6000)
+                return None
+        data = response.read()
+        response.close()
+        return simplejson.loads(data)
+
+Main().main()
