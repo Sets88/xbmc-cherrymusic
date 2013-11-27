@@ -64,3 +64,11 @@ msgstr ""
 msgctxt "#30018"
 msgid "You have to set user, password and host first"
 msgstr ""
+
+msgctxt "#30019"
+msgid "Connection error"
+msgstr ""
+
+msgctxt "#30020"
+msgid "Check internet connection or host"
+msgstr ""

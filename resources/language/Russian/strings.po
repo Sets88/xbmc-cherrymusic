@@ -64,3 +64,11 @@ msgstr "Необходима первоначальная настройка"
 msgctxt "#30018"
 msgid "You have to set user, password and host first"
 msgstr "Вы должны указать имя пользователя, пароль и узел"
+
+msgctxt "#30019"
+msgid "Connection error"
+msgstr "Ошибка соединения"
+
+msgctxt "#30020"
+msgid "Check internet connection or host"
+msgstr "Проверьте наличие интернета и правильность узла"
