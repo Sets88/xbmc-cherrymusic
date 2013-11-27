@@ -159,8 +159,10 @@ class Main(object):
         url = params.get("url", None)
         name = params.get("name", "")
 
-        if self.session_id is None:
+        if not self.username and not self.password and not self.host:
             UI().show_message(translated(30017), translated(30018), 10000)
+            return None
+        if self.session_id is None:
             return None
 
         if not mode:
@@ -184,8 +186,11 @@ class Main(object):
         data = urllib.urlencode({"username": username, "password": password, "login": "login"})
         try:
             response = urllib2.urlopen(request, data=data)
-        except urllib2.HTTPError as e:
+        except urllib2.HTTPError:
             pass
+        except urllib2.URLError:
+            UI().show_message(translated(30019), translated(30020), 10000)
+            return None
         else:
             self.session_id = response.headers.getheader("Set-Cookie").split(";")[0]
         response.close()
@@ -200,6 +205,9 @@ class Main(object):
             if e.code == 401:
                 UI().show_message(translated(30013), translated(30014), 6000)
                 return None
+        except urllib2.URLError:
+            UI().show_message(translated(30019), translated(30020), 10000)
+            return None
         data = response.read()
         response.close()
         return simplejson.loads(data)
@@ -214,6 +222,10 @@ class Main(object):
             if e.code == 401:
                 UI().show_message(translated(30013), translated(30014), 6000)
                 return None
+        except urllib2.URLError:
+            UI().show_message(translated(30019), translated(30020), 10000)
+            return None
+
         data = response.read()
         response.close()
         return simplejson.loads(data)
@@ -239,6 +251,9 @@ class Main(object):
             if e.code == 401:
                 UI().show_message(translated(30013), translated(30014), 6000)
                 return None
+        except urllib2.URLError:
+            UI().show_message(translated(30019), translated(30020), 10000)
+            return None
         data = response.read()
         response.close()
         return simplejson.loads(data)
