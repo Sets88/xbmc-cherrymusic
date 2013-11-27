@@ -1,9 +1,6 @@
 xbmc-cherrymusic
 ================
 
-<<<<<<< HEAD
-xbmc-cherrymusic
-=======
 I use CherryMusic as a default music player, i bought Raspberry pi, installed XBMC and realized that there is no any CherryMusic plugin for XBMC.
 
 Tried to solve this problem and find plugin for it, but...
@@ -13,4 +10,3 @@ So here's my version of plugin i wanted to find.
 
 
 fanart took from: http://www.dreamstime.com
->>>>>>> parent of f0ea679... moved files to dirrectory to use zip-download
