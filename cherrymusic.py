@@ -149,7 +149,6 @@ class Main(object):
         self.username = username
         self.password = password
 
-        self.login(self.host, self.username, self.password)
 
     def main(self):
 
@@ -162,6 +161,7 @@ class Main(object):
         if not self.username and not self.password and not self.host:
             UI().show_message(translated(30017), translated(30018), 10000)
             return None
+        self.login(self.host, self.username, self.password)
         if self.session_id is None:
             return None
 
