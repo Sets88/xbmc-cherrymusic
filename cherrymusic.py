@@ -10,7 +10,7 @@ import urlparse
 import json
 
 # Set global values.
-version = "0.0.3"
+version = "0.0.4"
 plugin = 'CherryMusic-' + version
 author = 'Sets'
 
