@@ -7,7 +7,7 @@ import sys
 import urllib
 import urllib2
 import urlparse
-import simplejson
+import json
 
 # Set global values.
 version = "0.0.1"
@@ -210,7 +210,7 @@ class Main(object):
             return None
         data = response.read()
         response.close()
-        return simplejson.loads(data)
+        return json.loads(data)
 
     def get_playlists(self):
         """ CherryMusic server returns available playlists, function returns deserialised data """
@@ -228,22 +228,22 @@ class Main(object):
 
         data = response.read()
         response.close()
-        return simplejson.loads(data)
+        return json.loads(data)
 
     def get_playlist(self, id):
         """ CherryMusic server returns playlists by id, function returns deserialised data """
         request = urllib2.Request(urlparse.urljoin(host, "api/loadplaylist"))
-        data = urllib.urlencode({"data": simplejson.dumps({"playlistid": id})})
+        data = urllib.urlencode({"data": json.dumps({"playlistid": id})})
         request.add_header("Cookie", self.session_id)
         response = urllib2.urlopen(request, data=data)
         data = response.read()
         response.close()
-        return simplejson.loads(data)
+        return json.loads(data)
 
     def search(self, text):
         """ CherryMusic server returns found tracks by sting, function returns deserialised data """
         request = urllib2.Request(urlparse.urljoin(host, "api/search"))
-        data = urllib.urlencode({"data": simplejson.dumps({"searchstring": text})})
+        data = urllib.urlencode({"data": json.dumps({"searchstring": text})})
         request.add_header("Cookie", self.session_id)
         try:
             response = urllib2.urlopen(request, data=data)
@@ -256,6 +256,6 @@ class Main(object):
             return None
         data = response.read()
         response.close()
-        return simplejson.loads(data)
+        return json.loads(data)
 
 Main().main()
